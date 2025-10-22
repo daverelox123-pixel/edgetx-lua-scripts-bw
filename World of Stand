@@ -1,0 +1,35 @@
+coroutine.wrap(function()
+    for _, spawnPart in ipairs(CHEST_SPAWNS_FOLDER:GetChildren()) do
+        if spawnPart:IsA("BasePart") then
+            -- try to find the corresponding chest model in workspace (if models are named after spawn part)
+            local chestModel = workspace:FindFirstChild(spawnPart.Name)
+            if chestModel and chestModel:IsA("Model") then
+                -- Teleport admin above the chest base (if base exists)
+                local base = chestModel:FindFirstChild("Base") or chestModel:FindFirstChildWhichIsA("BasePart")
+                if base then
+                    -- Teleport the player's character (safely)
+                    local char = player.Character or player.CharacterAdded:Wait()
+                    local hrp = char:FindFirstChild("HumanoidRootPart")
+                    if hrp then
+                        hrp.CFrame = base.CFrame * CFrame.new(TELEPORT_OFFSET)
+                        wait(TELEPORT_DELAY)
+                        -- Attempt to interact
+                        local success = tryFirePrompt(chestModel)
+                        if success then
+                            print("Fired prompt for chest:", chestModel.Name)
+                        else
+                            print("No prompt found or failed for chest:", chestModel.Name)
+                        end
+                        wait(POST_ACTION_DELAY)
+                    end
+                else
+                    warn("No base found for chest model:", chestModel.Name)
+                end
+            else
+                -- If there's no model with the spawn name, just report the spawn name
+                print("No matching chest model found for spawn:", spawnPart.Name)
+            end
+        end
+    end
+    print("Admin chest routine finished.")
+end)()
